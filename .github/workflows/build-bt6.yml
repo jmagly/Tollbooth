@@ -88,16 +88,18 @@ jobs:
           fi
 
           BASE="ghcr.io/bt-6/tollbooth-${{ matrix.service }}"
-          TAGS=""
-          for t in ${TAG_SUFFIXES}; do
-            TAGS="${TAGS} ${BASE}:${t}"
-          done
-          TAGS="${TAGS# }"
 
-          echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
+          # docker/build-push-action expects newline-separated tags.
+          # Use heredoc syntax for multi-line outputs.
+          echo "tags<<TAGS_EOF" >> "$GITHUB_OUTPUT"
+          for t in ${TAG_SUFFIXES}; do
+            echo "${BASE}:${t}" >> "$GITHUB_OUTPUT"
+            echo "  tag: ${BASE}:${t}"
+          done
+          echo "TAGS_EOF" >> "$GITHUB_OUTPUT"
+
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "build_date=${BUILD_DATE}" >> "$GITHUB_OUTPUT"
-          echo "Image tags: ${TAGS}"
 
       - name: Build + push tollbooth-${{ matrix.service }}
         uses: docker/build-push-action@v5
